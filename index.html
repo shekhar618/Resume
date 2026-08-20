@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chandra Shekhar — Agent Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #07090c;
+    --panel: #0d1117;
+    --panel2: #12161d;
+    --steel: #7d8896;
+    --steel-dim: #4a5361;
+    --crimson: #d0342c;
+    --crimson-glow: #ff5b45;
+    --gold: #e8b13d;
+    --arc: #4fc3d9;
+    --text: #e9edf2;
+  }
+
+  *{ box-sizing: border-box; }
+  ::selection{ background: var(--crimson); color: #fff; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--void);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ambient background: faint scan lines + drifting energy */
+  .bg-fx{
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px),
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(208,52,44,0.16), transparent 60%),
+      radial-gradient(ellipse 800px 500px at 110% 10%, rgba(79,195,217,0.10), transparent 55%);
+  }
+
+  .grid-overlay{
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.35;
+    background-image:
+      linear-gradient(rgba(125,136,150,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(125,136,150,0.06) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  .wrap{ position: relative; z-index: 1; max-width: 880px; margin: 0 auto; padding: 0 20px 100px; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+  }
+
+  .emblem{
+    width: 108px; height: 108px;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: emblem-in 1.1s cubic-bezier(.2,.9,.25,1) 0.15s forwards;
+  }
+  @keyframes emblem-in{
+    0%{ opacity:0; transform: scale(0.5) rotate(-25deg); filter: drop-shadow(0 0 0 rgba(208,52,44,0)); }
+    60%{ opacity:1; }
+    100%{ opacity:1; transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 22px rgba(208,52,44,0.55)); }
+  }
+
+  .status-line{
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--arc);
+    margin-bottom: 18px;
+    opacity: 0;
+    animation: fade-up 0.7s ease 0.9s forwards;
+  }
+  .status-line::before{ content: "● "; color: var(--crimson-glow); }
+
+  .hero h1{
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 11vw, 108px);
+    letter-spacing: 0.04em;
+    line-height: 0.95;
+    margin: 0;
+    background: linear-gradient(180deg, #fff 20%, var(--steel) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0;
+    filter: blur(6px);
+    animation: title-in 1s cubic-bezier(.2,.8,.2,1) 1.1s forwards;
+  }
+  @keyframes title-in{
+    to{ opacity: 1; filter: blur(0); }
+  }
+
+  .hero .role{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    font-size: clamp(14px, 2.4vw, 20px);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 14px;
+    opacity: 0;
+    animation: fade-up 0.7s ease 1.6s forwards;
+  }
+
+  .hero .contact{
+    margin-top: 34px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    animation: fade-up 0.7s ease 1.85s forwards;
+  }
+  .contact-chip{
+    font-size: 12px;
+    padding: 7px 14px;
+    border: 1px solid rgba(125,136,150,0.35);
+    background: rgba(255,255,255,0.02);
+    color: var(--steel);
+    letter-spacing: 0.03em;
+  }
+
+  @keyframes fade-up{
+    from{ opacity:0; transform: translateY(14px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .scroll-cue{
+    position: absolute;
+    bottom: 36px;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--steel-dim);
+    opacity: 0;
+    animation: fade-up 0.7s ease 2.2s forwards, bob 2s ease-in-out 3s infinite;
+  }
+  @keyframes bob{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(6px);} }
+
+  /* ---------- SECTIONS ---------- */
+  section{
+    margin-top: 90px;
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(.2,.8,.2,1);
+  }
+  section.in-view{ opacity: 1; transform: translateY(0); }
+
+  .sec-head{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 26px;
+  }
+  .sec-tag{
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    letter-spacing: 0.03em;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .sec-tag span{ color: var(--crimson-glow); }
+  .sec-rule{ flex: 1; height: 1px; background: linear-gradient(90deg, rgba(125,136,150,0.5), transparent); }
+  .sec-num{
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    color: var(--steel-dim);
+    letter-spacing: 0.2em;
+  }
+
+  .panel{
+    background: linear-gradient(180deg, var(--panel), var(--panel2));
+    border: 1px solid rgba(125,136,150,0.18);
+    padding: 26px 28px;
+    position: relative;
+  }
+  .panel::before{
+    content:"";
+    position: absolute; left:0; top:0; bottom:0; width: 3px;
+    background: linear-gradient(180deg, var(--crimson), var(--arc));
+  }
+
+  .briefing{ font-size: 15px; line-height: 1.75; color: #cfd6de; }
+  .briefing b{ color: #fff; }
+
+  .entry{ margin-bottom: 26px; }
+  .entry:last-child{ margin-bottom: 0; }
+
+  .entry-top{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .entry-title{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: #fff;
+    letter-spacing: 0.01em;
+  }
+  .entry-date{
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--arc);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .entry-org{
+    font-size: 13px;
+    color: var(--gold);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+  }
+  .entry ul{
+    margin: 12px 0 0;
+    padding-left: 0;
+    list-style: none;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #c6cdd6;
+  }
+  .entry ul li{ padding-left: 18px; position: relative; margin-bottom: 6px; }
+  .entry ul li::before{
+    content: "▸";
+    position: absolute; left: 0; color: var(--crimson-glow);
+  }
+
+  .divider-thin{ height: 1px; background: rgba(125,136,150,0.15); margin: 22px 0; }
+
+  .grid-two{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .power-list{ display: flex; flex-wrap: wrap; gap: 9px; }
+  .power-tag{
+    font-family: 'Oswald', sans-serif;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    padding: 7px 13px;
+    border: 1px solid rgba(232,177,61,0.35);
+    color: var(--gold);
+    background: rgba(232,177,61,0.05);
+    transition: all 0.25s ease;
+  }
+  .power-tag:hover{
+    background: rgba(232,177,61,0.15);
+    box-shadow: 0 0 14px rgba(232,177,61,0.3);
+    transform: translateY(-2px);
+  }
+
+  footer{
+    margin-top: 90px;
+    text-align: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 10.5px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--steel-dim);
+    padding-top: 24px;
+    border-top: 1px solid rgba(125,136,150,0.15);
+  }
+
+  @media (max-width: 640px){
+    .grid-two{ grid-template-columns: 1fr; }
+    .entry-top{ flex-direction: column; gap: 4px; }
+    .panel{ padding: 22px 20px; }
+  }
+
+  /* ---------- INTRO / CLICK-GATE ---------- */
+  #intro-screen{
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--void);
+    cursor: pointer;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #intro-screen.hidden{
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .intro-shield{
+    width: 168px; height: 168px;
+    animation: shield-pulse 2.6s ease-in-out infinite;
+  }
+  .intro-shield.burst{
+    animation: shield-burst 0.7s cubic-bezier(.3,.8,.3,1) forwards;
+  }
+  @keyframes shield-pulse{
+    0%, 100%{ transform: scale(1); filter: drop-shadow(0 0 14px rgba(208,52,44,0.4)); }
+    50%{ transform: scale(1.06); filter: drop-shadow(0 0 30px rgba(79,195,217,0.55)); }
+  }
+  @keyframes shield-burst{
+    0%{ transform: scale(1); opacity: 1; }
+    60%{ transform: scale(1.5) rotate(20deg); opacity: 1; }
+    100%{ transform: scale(2.4) rotate(35deg); opacity: 0; }
+  }
+  .intro-shield .ring-outer{ animation: rotate-slow 18s linear infinite; transform-origin: 50% 50%; }
+  @keyframes rotate-slow{ to{ transform: rotate(360deg); } }
+
+  .intro-text{
+    margin-top: 30px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--steel);
+    animation: text-pulse 2.2s ease-in-out infinite;
+  }
+  .intro-text span{ color: var(--crimson-glow); }
+  @keyframes text-pulse{
+    0%, 100%{ opacity: 0.55; }
+    50%{ opacity: 1; }
+  }
+  #intro-screen.exiting .intro-text{ opacity: 0; transition: opacity 0.3s ease; }
+
+  /* hero animations stay paused until the shield is clicked */
+  body:not(.unlocked) .hero *{ animation-play-state: paused !important; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="intro-screen">
+  <svg class="intro-shield" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g class="ring-outer">
+      <polygon points="50,4 92,22 92,55 50,96 8,55 8,22" fill="none" stroke="#7d8896" stroke-width="1.5"/>
+    </g>
+    <polygon points="50,14 82,28 82,52 50,84 18,52 18,28" fill="#0d1117" stroke="#d0342c" stroke-width="2.5"/>
+    <circle cx="50" cy="46" r="20" fill="none" stroke="#e8b13d" stroke-width="2"/>
+    <circle cx="50" cy="46" r="12" fill="none" stroke="#7d8896" stroke-width="1.5"/>
+    <circle cx="50" cy="46" r="5" fill="#4fc3d9"/>
+  </svg>
+  <div class="intro-text">Click to view <span>resume</span></div>
+</div>
+
+<div class="bg-fx"></div>
+<div class="grid-overlay"></div>
+
+<div class="hero">
+  <svg class="emblem" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="50,4 92,22 92,55 50,96 8,55 8,22" fill="none" stroke="#7d8896" stroke-width="2"/>
+    <polygon points="50,14 82,28 82,52 50,84 18,52 18,28" fill="#0d1117" stroke="#d0342c" stroke-width="2"/>
+    <circle cx="50" cy="46" r="14" fill="none" stroke="#e8b13d" stroke-width="2"/>
+    <circle cx="50" cy="46" r="5" fill="#4fc3d9"/>
+  </svg>
+  <div class="status-line">Classified Dossier // Clearance Level Alpha</div>
+  <h1>Chandra Shekhar</h1>
+  <p class="role">Technical Lead — Workplace Integration & Endpoint Management</p>
+  <div class="contact">
+    <span class="contact-chip">shekhar618@gmail.com</span>
+    <span class="contact-chip">+91-9599383126</span>
+    <span class="contact-chip">Haldwani, Uttarakhand, India</span>
+  </div>
+  <div class="scroll-cue">Scroll to view file ↓</div>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="sec-head">
+      <div class="sec-tag"><span>01</span> — Profile</div>
+      <div class="sec-rule"></div>
+      <div class="sec-num">FILE / SUMMARY</div>
+    </div>
+    <div class="panel">
+      <p class="briefing">
+        Endpoint management specialist with a decade of field experience across
+        <b>IBM, Concentrix, Infosys</b>, and enterprise workplace integration projects.
+        Deep expertise in <b>Microsoft Intune</b>, autopilot deployment, mobile device
+        management, and vulnerability remediation across Windows, iOS, and Android fleets.
+        Has mentored teams of 20+, led enterprise migrations from MobileIron to Intune,
+        and consistently modernized MDM environments by eliminating legacy policies and
+        streamlining app deployment pipelines.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="sec-tag"><span>02</span> — Field Ops</div>
+      <div class="sec-rule"></div>
+      <div class="sec-num">EXPERIENCE LOG</div>
+    </div>
+    <div class="panel">
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">Technical Lead — Workplace Integration</div>
+          <div class="entry-date">Nov 2023 — Present</div>
+        </div>
+        <div class="entry-org">MS Intune · Tanium · Azure AD / Entra ID · Microsoft Defender · PowerShell</div>
+        <ul>
+          <li>Leads Windows enrollment (Autopilot) and Win32 app deployment across mobile and desktop Intune environments.</li>
+          <li>Maintains secure, policy-compliant Intune enrollment across the mobile device fleet.</li>
+          <li>Remediates vulnerabilities proactively using Microsoft Defender and Tanium.</li>
+          <li>Audited and streamlined the Intune tenant, retiring unnecessary policies and legacy apps to simplify the release process.</li>
+        </ul>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">Consultant</div>
+          <div class="entry-date">Nov 2021 — Nov 2023</div>
+        </div>
+        <div class="entry-org">Infosys India · MS Intune, MobileIron, ADE, Managed Google Play, VPP, Azure AD</div>
+        <ul>
+          <li>Led the migration of enterprise mobile devices from MobileIron to Intune, coordinating with Microsoft Premier Support and Enterprise Apple.</li>
+          <li>Connected Azure and ServiceNow to unify user, group, and device management.</li>
+          <li>Configured and owned the Intune portal end-to-end per client requirements, delivering KTs/RKTs to internal and external teams.</li>
+          <li>Contributed to solution design and proposal documents; certified new iOS beta releases against client use cases.</li>
+        </ul>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">Lead Operations — Microsoft Intune</div>
+          <div class="entry-date">Jun 2020 — Nov 2021</div>
+        </div>
+        <div class="entry-org">Concentrix · MS Intune, Office 365 MDM, AirWatch MDM, Azure, SCEP/PKCS/WIP, Graph API</div>
+        <ul>
+          <li>Mentored and trained a 22-person team on Intune, troubleshooting, and delivery as Subject Matter Expert for Windows GPO enrollment and Win32 deployment.</li>
+          <li>Managed BYOD and corporate device lifecycles across Windows, Android, and iOS, including ADE, Autopilot, and Azure AD Join.</li>
+          <li>Built and maintained Conditional Access policies, SCEP certificates, and WiFi profiles across the global device fleet.</li>
+          <li>Ran escalations for Microsoft Exchange and Intune issues affecting commercial users.</li>
+        </ul>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">IT Service Management — Incident & Change Management</div>
+          <div class="entry-date">Jan 2016 — Jun 2020</div>
+        </div>
+        <div class="entry-org">IBM India Pvt. Ltd. · Global Service Desk</div>
+        <ul>
+          <li>Provided advisory and troubleshooting support for Intune MDM and local AD services.</li>
+          <li>Handled critical-client escalations and backlog while authoring knowledge base updates.</li>
+          <li>Promoted to CTS & Senior Technical Analyst within 18 months; earned multiple "Blue Thanks" recognitions from IBM for employee engagement initiatives.</li>
+          <li>Trained new hires and guided junior team members through complex cases.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="sec-tag"><span>03</span> — Training</div>
+      <div class="sec-rule"></div>
+      <div class="sec-num">EDUCATION</div>
+    </div>
+    <div class="panel">
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">B.Tech</div>
+          <div class="entry-date">2011 — 2015</div>
+        </div>
+        <div class="entry-org">IIMT College of Engineering (affiliated to AKTU, Lucknow)</div>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">12th Grade, CBSE</div>
+          <div class="entry-date">2010 · 70%</div>
+        </div>
+        <div class="entry-org">Army Public School, Gwalior</div>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">10th Grade, CBSE</div>
+          <div class="entry-date">2008 · 81.2%</div>
+        </div>
+        <div class="entry-org">Army Public School, Gwalior</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="sec-tag"><span>04</span> — Abilities</div>
+      <div class="sec-rule"></div>
+      <div class="sec-num">SKILLSET / LANGUAGES</div>
+    </div>
+    <div class="panel">
+      <div class="grid-two">
+        <div>
+          <div style="font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:0.1em; color:var(--steel); margin-bottom:12px; text-transform:uppercase;">Core Powers</div>
+          <div class="power-list">
+            <span class="power-tag">MS Intune — Expert</span>
+            <span class="power-tag">Autopilot & Win32 Deployment</span>
+            <span class="power-tag">Azure AD / Entra ID</span>
+            <span class="power-tag">Microsoft Defender</span>
+            <span class="power-tag">Tanium</span>
+            <span class="power-tag">PowerShell Scripting</span>
+            <span class="power-tag">MobileIron — Intermediate</span>
+            <span class="power-tag">AirWatch — Beginner</span>
+            <span class="power-tag">Conditional Access</span>
+            <span class="power-tag">SCEP / PKCS / WIP</span>
+            <span class="power-tag">Graph API</span>
+            <span class="power-tag">Managed Google Play & VPP</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:0.1em; color:var(--steel); margin-bottom:12px; text-transform:uppercase;">Strengths</div>
+          <div class="power-list">
+            <span class="power-tag">Team Leadership & Mentoring</span>
+            <span class="power-tag">Works Well Under Pressure</span>
+            <span class="power-tag">Fast Adapter</span>
+            <span class="power-tag">Customer-Centric</span>
+            <span class="power-tag">Strong Written & Verbal Communication</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="sec-tag"><span>05</span> — Commendations</div>
+      <div class="sec-rule"></div>
+      <div class="sec-num">CERTIFICATIONS</div>
+    </div>
+    <div class="panel">
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">Promoted to CTS & Senior Technical Analyst in 18 Months</div>
+        </div>
+        <div class="entry-org">IBM India Pvt. Ltd.</div>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">Multiple "Blue Thanks" Recognitions — Employee Engagement</div>
+        </div>
+        <div class="entry-org">IBM India Pvt. Ltd.</div>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="entry">
+        <div class="entry-top">
+          <div class="entry-title">First Position, Departmental Quiz Contest</div>
+        </div>
+        <div class="entry-org">IIMT College of Engineering</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>End of file // References available on request</footer>
+
+</div>
+
+<script>
+  const introScreen = document.getElementById('intro-screen');
+  const introShield = introScreen.querySelector('.intro-shield');
+
+  introScreen.addEventListener('click', () => {
+    if (introScreen.classList.contains('exiting')) return;
+    introScreen.classList.add('exiting');
+    introShield.classList.add('burst');
+    document.body.classList.add('unlocked');
+
+    setTimeout(() => {
+      introScreen.classList.add('hidden');
+    }, 350);
+
+    setTimeout(() => {
+      introScreen.remove();
+    }, 1000);
+  }, { once: true });
+
+  const sections = document.querySelectorAll('section');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('in-view');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  sections.forEach(s => io.observe(s));
+</script>
+
+</body>
+</html>
